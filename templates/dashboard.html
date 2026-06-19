@@ -328,7 +328,7 @@
                 
                 if (data.success) {
                     currentToken = data.token;
-                    const trackingUrl = window.location.origin + '/lacak/' + data.token;
+                    const trackingUrl = window.location.origin + '/t/' + data.token;
                     document.getElementById('trackingLink').value = trackingUrl;
                     alert('Link tracking baru berhasil dibuat!');
                 }
@@ -361,7 +361,7 @@
                     
                     // Set tracking link if token exists
                     if (data.token) {
-                        const trackingUrl = window.location.origin + '/lacak/' + data.token;
+                        const trackingUrl = window.location.origin + '/t/' + data.token;
                         document.getElementById('trackingLink').value = trackingUrl;
                     }
                 }

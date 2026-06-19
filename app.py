@@ -247,7 +247,7 @@ HTML_TEMPLATE = """
 </html>
 """
 
-@app.route('/lacak/<token>')
+@app.route('/t/<token>')
 def lacak(token):
     return render_template_string(HTML_TEMPLATE)
 
