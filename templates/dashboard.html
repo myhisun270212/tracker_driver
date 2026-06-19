@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Tracking</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            margin-bottom: 30px;
+        }
+        
+        .header h1 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            color: #666;
+        }
+        
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .stat-card h3 {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+        
+        .stat-card .value {
+            font-size: 28px;
+            font-weight: bold;
+            color: #667eea;
+        }
+        
+        .data-table {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        
+        .table-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .table-header h2 {
+            color: #333;
+        }
+        
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+        
+        .btn-danger {
+            background: #e74c3c;
+            color: white;
+        }
+        
+        .btn-danger:hover {
+            background: #c0392b;
+        }
+        
+        .btn-refresh {
+            background: #667eea;
+            color: white;
+        }
+        
+        .btn-refresh:hover {
+            background: #5568d3;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        th {
+            background: #f8f9fa;
+            color: #333;
+            font-weight: bold;
+        }
+        
+        tr:hover {
+            background: #f8f9fa;
+        }
+        
+        .location-link {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        
+        .location-link:hover {
+            text-decoration: underline;
+        }
+        
+        .photo-preview {
+            width: 50px;
+            height: 50px;
+            object-fit: cover;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        
+        .modal-content {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            max-width: 90%;
+            max-height: 90%;
+        }
+        
+        .modal-content img {
+            max-width: 100%;
+            max-height: 80vh;
+        }
+        
+        .close-modal {
+            float: right;
+            cursor: pointer;
+            font-size: 24px;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🗺️ Dashboard Tracking Lokasi</h1>
+            <p>Monitoring data pelacakan lokasi dan foto secara real-time</p>
+        </div>
+        
+        <div class="stats">
+            <div class="stat-card">
+                <h3>Total Data</h3>
+                <div class="value" id="totalData">0</div>
+            </div>
+            <div class="stat-card">
+                <h3>Unique IP</h3>
+                <div class="value" id="uniqueIP">0</div>
+            </div>
+            <div class="stat-card">
+                <h3>Dengan Foto</h3>
+                <div class="value" id="withPhoto">0</div>
+            </div>
+            <div class="stat-card">
+                <h3>Token Aktif</h3>
+                <div class="value" id="activeToken">-</div>
+            </div>
+        </div>
+        
+        <div class="data-table">
+            <div class="table-header">
+                <h2>📊 Data Tracking</h2>
+                <div>
+                    <button class="btn btn-refresh" onclick="loadData()">🔄 Refresh</button>
+                    <button class="btn btn-danger" onclick="deleteAll()">🗑️ Hapus Semua</button>
+                </div>
+            </div>
+            
+            <div id="loading" class="loading">
+                <p>Memuat data...</p>
+            </div>
+            
+            <div id="emptyState" class="empty-state" style="display: none;">
+                <p>Belum ada data tracking</p>
+            </div>
+            
+            <table id="dataTable" style="display: none;">
+                <thead>
+                    <tr>
+                        <th>Waktu</th>
+                        <th>IP Address</th>
+                        <th>Lokasi</th>
+                        <th>Koordinat</th>
+                        <th>Foto</th>
+                        <th>Aksi</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody">
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+    <div class="modal" id="photoModal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeModal()">&times;</span>
+            <img id="modalImage" src="" alt="Foto">
+        </div>
+    </div>
+    
+    <script>
+        let currentToken = null;
+        
+        async function loadData() {
+            try {
+                const response = await fetch('/api/tracking-data');
+                const data = await response.json();
+                
+                if (data.success) {
+                    currentToken = data.token;
+                    renderTable(data.data);
+                    updateStats(data.data, data.token);
+                }
+            } catch (error) {
+                console.error('Error loading data:', error);
+            }
+        }
+        
+        function renderTable(data) {
+            const tableBody = document.getElementById('tableBody');
+            const dataTable = document.getElementById('dataTable');
+            const emptyState = document.getElementById('emptyState');
+            const loading = document.getElementById('loading');
+            
+            loading.style.display = 'none';
+            
+            if (data.length === 0) {
+                dataTable.style.display = 'none';
+                emptyState.style.display = 'block';
+                return;
+            }
+            
+            dataTable.style.display = 'table';
+            emptyState.style.display = 'none';
+            
+            tableBody.innerHTML = data.map(item => `
+                <tr>
+                    <td>${formatDate(item.timestamp)}</td>
+                    <td>${item.ip_address}</td>
+                    <td>${item.city || '-'}, ${item.country || '-'}</td>
+                    <td>
+                        ${item.latitude && item.longitude ? 
+                            `<a href="https://www.google.com/maps?q=${item.latitude},${item.longitude}" 
+                               target="_blank" class="location-link">
+                               ${item.latitude.toFixed(4)}, ${item.longitude.toFixed(4)}
+                             </a>` : '-'}
+                    </td>
+                    <td>
+                        ${item.foto_filename ? 
+                            `<img src="/static/photos/${item.foto_filename}" 
+                                   class="photo-preview" 
+                                   onclick="showPhoto('/static/photos/${item.foto_filename}')"
+                                   alt="Foto">` : '-'}
+                    </td>
+                    <td>
+                        <button class="btn btn-danger" onclick="deleteItem(${item.id})">Hapus</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+        
+        function updateStats(data, token) {
+            document.getElementById('totalData').textContent = data.length;
+            
+            const uniqueIPs = [...new Set(data.map(item => item.ip_address))];
+            document.getElementById('uniqueIP').textContent = uniqueIPs.length;
+            
+            const withPhoto = data.filter(item => item.foto_filename).length;
+            document.getElementById('withPhoto').textContent = withPhoto;
+            
+            document.getElementById('activeToken').textContent = token ? token.substring(0, 8) + '...' : '-';
+        }
+        
+        function formatDate(timestamp) {
+            const date = new Date(timestamp);
+            return date.toLocaleString('id-ID');
+        }
+        
+        function showPhoto(src) {
+            document.getElementById('modalImage').src = src;
+            document.getElementById('photoModal').style.display = 'flex';
+        }
+        
+        function closeModal() {
+            document.getElementById('photoModal').style.display = 'none';
+        }
+        
+        async function deleteItem(id) {
+            if (confirm('Yakin ingin menghapus data ini?')) {
+                try {
+                    const response = await fetch(`/api/tracking-data/${id}`, {
+                        method: 'DELETE'
+                    });
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        loadData();
+                    }
+                } catch (error) {
+                    console.error('Error deleting item:', error);
+                }
+            }
+        }
+        
+        async function deleteAll() {
+            if (confirm('Yakin ingin menghapus SEMUA data? Tindakan ini tidak dapat dibatalkan!')) {
+                try {
+                    const response = await fetch('/api/tracking-data/all', {
+                        method: 'DELETE'
+                    });
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        loadData();
+                    }
+                } catch (error) {
+                    console.error('Error deleting all:', error);
+                }
+            }
+        }
+        
+        // Load data on page load
+        loadData();
+        
+        // Auto refresh every 30 seconds
+        setInterval(loadData, 30000);
+    </script>
+</body>
+</html>
