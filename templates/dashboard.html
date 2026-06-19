@@ -40,6 +40,51 @@
             color: #666;
         }
         
+        .link-section {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+        
+        .link-section h3 {
+            color: #333;
+            margin-bottom: 15px;
+        }
+        
+        .link-display {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        
+        .link-input {
+            flex: 1;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+            background: white;
+        }
+        
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #5568d3;
+        }
+        
+        .btn-success {
+            background: #2ecc71;
+            color: white;
+        }
+        
+        .btn-success:hover {
+            background: #27ae60;
+        }
+        
         .stats {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -201,6 +246,15 @@
         <div class="header">
             <h1>🗺️ Dashboard Tracking Lokasi</h1>
             <p>Monitoring data pelacakan lokasi dan foto secara real-time</p>
+            
+            <div class="link-section">
+                <h3>🔗 Link Tracking</h3>
+                <div class="link-display">
+                    <input type="text" class="link-input" id="trackingLink" readonly placeholder="Generate link tracking baru...">
+                    <button class="btn btn-primary" onclick="generateLink()">Generate Link</button>
+                    <button class="btn btn-success" onclick="copyLink()">Copy</button>
+                </div>
+            </div>
         </div>
         
         <div class="stats">
@@ -266,6 +320,34 @@
     <script>
         let currentToken = null;
         
+        async function generateLink() {
+            try {
+                const response = await fetch('/api/generate-token');
+                const data = await response.json();
+                
+                if (data.success) {
+                    currentToken = data.token;
+                    const trackingUrl = window.location.origin + '/lacak/' + data.token;
+                    document.getElementById('trackingLink').value = trackingUrl;
+                    alert('Link tracking baru berhasil dibuat!');
+                }
+            } catch (error) {
+                console.error('Error generating link:', error);
+                alert('Gagal generate link tracking');
+            }
+        }
+        
+        function copyLink() {
+            const linkInput = document.getElementById('trackingLink');
+            if (linkInput.value) {
+                linkInput.select();
+                document.execCommand('copy');
+                alert('Link berhasil disalin!');
+            } else {
+                alert('Generate link terlebih dahulu');
+            }
+        }
+        
         async function loadData() {
             try {
                 const response = await fetch('/api/tracking-data');
@@ -275,6 +357,12 @@
                     currentToken = data.token;
                     renderTable(data.data);
                     updateStats(data.data, data.token);
+                    
+                    // Set tracking link if token exists
+                    if (data.token) {
+                        const trackingUrl = window.location.origin + '/lacak/' + data.token;
+                        document.getElementById('trackingLink').value = trackingUrl;
+                    }
                 }
             } catch (error) {
                 console.error('Error loading data:', error);

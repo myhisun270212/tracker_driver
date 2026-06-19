@@ -331,6 +331,12 @@ def kirim_data():
 def dashboard():
     return render_template('dashboard.html')
 
+@app.route('/api/generate-token', methods=['POST'])
+def generate_token():
+    global TOKEN
+    TOKEN = str(uuid.uuid4())
+    return jsonify({'success': True, 'token': TOKEN})
+
 @app.route('/api/tracking-data', methods=['GET'])
 def get_tracking_data():
     try:
