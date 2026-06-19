@@ -1,4 +1,4 @@
-# 🚀 Deployment Guide - Render
+# 🚀 Deployment Guide - Railway
 
 ## 📋 Prasyarat Sebelum Deployment
 
@@ -33,39 +33,46 @@ git remote add origin https://gitlab.com/username/tracking-driver.git
 git push -u origin main
 ```
 
-## 🌐 Deployment ke Render
+## 🌐 Deployment ke Railway
 
-### Langkah 1: Buat Akun Render
+### Langkah 1: Buat Akun Railway
 
-1. Buka [render.com](https://render.com)
+1. Buka [railway.app](https://railway.app)
 2. Sign up dengan GitHub/GitLab
 
-### Langkah 2: Buat Web Service
+### Langkah 2: Buat Project Baru
 
-1. Klik "New +" → "Web Service"
-2. Connect repository Git Anda
-3. Render akan otomatis mendeteksi `render.yaml`
+1. Klik "New Project" → "Deploy from GitHub repo"
+2. Select repository Anda
+3. Railway akan otomatis mendeteksi Python app
 
 ### Langkah 3: Konfigurasi Environment Variables
 
-Di dashboard Render, tambahkan environment variables:
+Di dashboard Railway, tambahkan environment variables:
 
 **Required:**
 - `SUPABASE_URL`: URL project Supabase Anda
 - `SUPABASE_KEY`: Anon key dari Supabase
 
-**Optional (Auto-generated):**
-- `SECRET_KEY`: Akan otomatis di-generate oleh Render
-- `FLASK_ENV`: Akan otomatis di-set ke "production"
+**Optional:**
+- `FLASK_ENV`: Set ke `production`
+- `SECRET_KEY`: Generate random string untuk Flask
 
 ### Langkah 4: Deploy
 
-1. Klik "Create Web Service"
+1. Klik "Deploy"
 2. Tunggu proses build dan deploy (±2-5 menit)
-3. Setelah selesai, Anda akan dapat URL:
+3. Setelah selesai, Railway akan generate URL:
    ```
-   https://tracking-driver-xxxx.onrender.com
+   https://your-app-name.railway.app
    ```
+
+### Langkah 5: Setup Health Check
+
+Railway akan otomatis detect health check dari `railway.json`:
+- Health check path: `/` (dashboard)
+- Timeout: 100ms
+- Restart on failure
 
 ## ✅ Verifikasi Deployment
 
@@ -73,18 +80,130 @@ Di dashboard Render, tambahkan environment variables:
 
 Buka URL dashboard:
 ```
-https://your-app-name.onrender.com
+https://your-app-name.railway.app
 ```
 
 Harus menampilkan dashboard tracking.
 
 ### 2. Cek Link Tracking
 
-Setiap kali aplikasi di-restart, akan generate token baru. Cek log di Render dashboard untuk melihat URL tracking.
+Setiap kali aplikasi di-restart, akan generate token baru. Cek log di Railway dashboard untuk melihat URL tracking.
 
 ### 3. Test Tracking
 
 1. Buka URL tracking dari log
+2. Klik layar → data IP terkirim
+3. Klik overlay → minta izin GPS/kamera (HTTPS enabled)
+4. Cek dashboard untuk melihat data
+
+## 🔧 Troubleshooting
+
+### Build Gagal
+
+**Cek log build di Railway dashboard:**
+- Pastikan `requirements.txt` valid
+- Pastikan tidak ada syntax error di `app.py`
+- Pastikan Python version compatible
+
+### Database Connection Error
+
+**Pastikan environment variables benar:**
+- `SUPABASE_URL` harus lengkap dengan https://
+- `SUPABASE_KEY` harus valid
+
+### Geolocation Tidak Berfungsi
+
+**Di Railway (HTTPS):**
+- Geolocation akan bekerja otomatis
+- Browser akan meminta izin
+
+**Testing Lokal:**
+- Gunakan `http://127.0.0.1:5000` untuk geolocation
+- IP lokal tidak support geolocation
+
+### Dashboard Tidak Muncul
+
+**Cek:**
+- Folder `templates/` ada dan berisi `dashboard.html`
+- Route `/` sudah ada di `app.py`
+- Static folder sudah dibuat
+
+## 📊 Monitoring
+
+### Cek Logs
+
+Di Railway dashboard:
+1. Klik project Anda
+2. Tab "Logs"
+3. Lihat real-time logs
+
+### Cek Metrics
+
+Di Railway dashboard:
+1. Tab "Metrics"
+2. Monitor CPU, Memory, Response time
+
+## 🔄 Update Deployment
+
+### Update Code
+
+```bash
+git add .
+git commit -m "Update description"
+git push
+```
+
+Railway akan otomatis detect dan redeploy.
+
+### Update Environment Variables
+
+1. Buka Railway dashboard
+2. Project → Settings → Variables
+3. Edit atau tambahkan variables
+4. Save → Railway akan restart service
+
+## 🔒 Security
+
+### Environment Variables
+
+- Jangan commit `.env` file
+- Gunakan `.env.example` sebagai template
+- Set environment variables di Railway dashboard
+
+### Supabase Security
+
+- Gunakan Row Level Security (RLS) di production
+- Batasi akses berdasarkan kebutuhan
+- Rotate keys secara berkala
+
+## 📝 Catatan Penting
+
+### Token Generation
+
+Setiap kali aplikasi di-restart, token baru akan di-generate. URL tracking akan berubah. Simpan token jika perlu tracking jangka panjang.
+
+### Data Storage
+
+- **Supabase**: Data tersimpan di cloud (persistent)
+- **Local Fallback**: Hanya untuk development, tidak persistent di Railway
+
+### Foto Storage
+
+Foto disimpan di `static/photos/`. Di Railway, ini tidak persistent. Untuk production:
+- Gunakan Supabase Storage
+- Atau layanan cloud storage lain (AWS S3, Cloudinary)
+
+## 🎉 Deployment Selesai
+
+Aplikasi Anda sekarang live di:
+```
+https://your-app-name.railway.app
+```
+
+Dashboard: `https://your-app-name.railway.app`
+Tracking: `https://your-app-name.railway.app/lacak/[TOKEN]`
+
+Selamat! 🚀
 2. Klik layar → data IP terkirim
 3. Klik overlay → minta izin GPS/kamera (HTTPS enabled)
 4. Cek dashboard untuk melihat data
