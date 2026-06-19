@@ -300,6 +300,7 @@
                         <th>IP Address</th>
                         <th>Lokasi</th>
                         <th>Koordinat</th>
+                        <th>Accuracy</th>
                         <th>Foto</th>
                         <th>Aksi</th>
                     </tr>
@@ -397,6 +398,12 @@
                                target="_blank" class="location-link">
                                ${item.latitude.toFixed(4)}, ${item.longitude.toFixed(4)}
                              </a>` : '-'}
+                    </td>
+                    <td>
+                        ${item.accuracy ? 
+                            `<span style="color: ${item.accuracy < 50 ? 'green' : item.accuracy < 100 ? 'orange' : 'red'}">
+                                ${item.accuracy.toFixed(1)}m
+                             </span>` : '-'}
                     </td>
                     <td>
                         ${item.foto_filename ? 

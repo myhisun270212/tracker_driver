@@ -9,6 +9,7 @@ CREATE TABLE tracking_data (
     city VARCHAR(100),
     country VARCHAR(100),
     foto_filename VARCHAR(255),
+    accuracy DECIMAL(10, 2),
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
