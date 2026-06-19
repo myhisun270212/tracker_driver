@@ -4,7 +4,7 @@ import base64
 import json
 import requests
 from datetime import datetime
-from flask import Flask, request, jsonify, render_template_string
+from flask import Flask, request, jsonify, render_template_string, render_template
 from dotenv import load_dotenv
 from supabase import create_client, Client
 
